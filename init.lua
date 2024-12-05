@@ -148,6 +148,35 @@ vim.opt.splitbelow = true
 vim.opt.list = true
 vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
 
+vim.opt.tabstop = 2
+vim.opt.shiftwidth = 2
+vim.opt.expandtab = true
+
+-- Set tab indent to 4 spaces for Python files
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'python',
+  callback = function()
+    vim.opt_local.tabstop = 4
+    vim.opt_local.shiftwidth = 4
+    vim.opt_local.expandtab = true
+  end,
+})
+
+-- Set tab indent to 2 spaces for C++ files
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = { 'c', 'cpp' },
+  callback = function()
+    vim.opt_local.tabstop = 2
+    vim.opt_local.shiftwidth = 2
+    vim.opt_local.expandtab = true
+  end,
+})
+
+-- Disable vim-sleuth for C, C++, and Python files
+vim.g.sleuth_python_heuristics = 0
+vim.g.sleuth_c_heuristics = 0
+vim.g.sleuth_cpp_heuristics = 0
+
 -- Preview substitutions live, as you type!
 vim.opt.inccommand = 'split'
 
@@ -155,7 +184,7 @@ vim.opt.inccommand = 'split'
 vim.opt.cursorline = true
 
 -- Minimal number of screen lines to keep above and below the cursor.
-vim.opt.scrolloff = 10
+vim.opt.scrolloff = 20
 
 -- Enable true color support
 vim.opt.termguicolors = true
@@ -261,8 +290,67 @@ require('lazy').setup({
       },
     },
   },
+  {
+    'echasnovski/mini.tabline',
+    version = false, -- Latest version
+    config = function()
+      require('mini.tabline').setup {
+        show_icons = true, -- Show icons next to buffer names
+        set_vim_settings = true, -- Enable default Vim tabline settings
+        tabpage_section = 'left', -- Show tabpage section on the left
+      }
+      vim.keymap.set('n', '<Tab>', ':bnext<CR>', { desc = 'Next buffer' })
+      vim.keymap.set('n', '<S-Tab>', ':bprev<CR>', { desc = 'Previous buffer' })
+      -- Keybinding to close the current buffer
+      vim.keymap.set('n', '<leader>q', ':bd<CR>', { desc = 'Close buffer' })
 
-  -- NOTE: Plugins can also be configured to run Lua code when they are loaded.
+      -- Keybinding to close the current window
+      vim.keymap.set('n', '<leader>wq', ':q<CR>', { desc = 'Close window' })
+    end,
+  }, -- Cool plugin for in-editor terminal window
+  {
+    'Ernest1338/termplug.nvim',
+    config = function()
+      require('termplug').setup { size = 0.9 } -- Set the size to 0.5 or customize as needed
+      -- Define the keymap for Control + i to toggle terminal
+      vim.keymap.set({ 'n', 't' }, '<C-i>', '<cmd>Term<CR>', { desc = 'Toggle Terminal' })
+
+      -- Optionally, keymap for Control + g to toggle lazygit
+      vim.keymap.set({ 'n', 't' }, '<C-g>', '<cmd>Term lazygit<CR>', { desc = 'Toggle LazyGit' })
+    end,
+  },
+  {
+    'nvim-lualine/lualine.nvim',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+  },
+  {
+    'echasnovski/mini.files',
+    version = false, -- Use latest development version
+    config = function()
+      require('mini.files').setup {
+        windows = {
+          preview = true, -- Enable preview of files under the cursor
+          width_focus = 50, -- Width of focused window
+          width_nofocus = 15, -- Width of non-focused windows
+        },
+        mappings = {
+          close = 'q', -- Close the explorer
+          go_in = 'l', -- Go inside a directory
+          go_out = 'h', -- Go out to the parent directory
+          mark_set = 'm', -- Set a bookmark
+          mark_goto = "'", -- Go to a bookmark
+        },
+        options = {
+          use_as_default_explorer = true, -- Use `mini.files` instead of netrw as the default file explorer
+        },
+      }
+      -- Keybinding to open the mini.files explorer
+      vim.keymap.set('n', '<leader>e', ':lua MiniFiles.open()<CR>', { desc = 'Open MiniFiles' })
+
+      -- Keybinding to close the mini.files explorer (inside the explorer)
+      vim.keymap.set('n', 'q', ':lua MiniFiles.close()<CR>', { desc = 'Close MiniFiles' })
+    end,
+  }, -- NOTE: Plugins can also be configured to run Lua code when they are loaded.
   --
   -- This is often very useful to both group configuration, as well as handle
   -- lazy loading plugins that don't need to be loaded immediately at startup.
@@ -462,11 +550,26 @@ require('lazy').setup({
     'neovim/nvim-lspconfig',
     dependencies = {
       -- Automatically install LSPs and related tools to stdpath for Neovim
-      { 'williamboman/mason.nvim', config = true }, -- NOTE: Must be loaded before dependants
-      'williamboman/mason-lspconfig.nvim',
-      'WhoIsSethDaniel/mason-tool-installer.nvim',
-
-      -- Useful status updates for LSP.
+      {
+        'williamboman/mason.nvim',
+        config = true, -- Configures mason
+      },
+      {
+        'williamboman/mason-lspconfig.nvim',
+        config = function()
+          require('mason-lspconfig').setup {
+            ensure_installed = { 'pyright' }, -- Install the Python LSP
+          }
+        end,
+      },
+      {
+        'WhoIsSethDaniel/mason-tool-installer.nvim',
+        config = function()
+          require('mason-tool-installer').setup {
+            ensure_installed = { 'black' }, -- Ensure 'black' is installed for Python formatting
+          }
+        end,
+      }, -- Useful status updates for LSP.
       -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
       { 'j-hui/fidget.nvim', opts = {} },
 
@@ -613,6 +716,28 @@ require('lazy').setup({
       local servers = {
         clangd = {},
         gopls = {},
+        html = {
+          filetypes = { 'html', 'htmldjango' }, -- You can define supported file types here
+        },
+        cssls = {
+          settings = {
+            css = {
+              lint = {
+                unknownAtRules = 'ignore', -- Customize CSS linting options
+              },
+            },
+            scss = {
+              lint = {
+                unknownAtRules = 'ignore',
+              },
+            },
+            less = {
+              lint = {
+                unknownAtRules = 'ignore',
+              },
+            },
+          },
+        },
         pyright = {},
         rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
@@ -654,6 +779,10 @@ require('lazy').setup({
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
         'black', -- Used to format Python code
+        'cpplint',
+        'clang-format',
+        'html',
+        'cssls',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -692,7 +821,7 @@ require('lazy').setup({
         -- Disable "format_on_save lsp_fallback" for languages that don't
         -- have a well standardized coding style. You can add additional
         -- languages here or re-enable it for the disabled ones.
-        local disable_filetypes = { c = true, cpp = true }
+        local disable_filetypes = {}
         local lsp_format_opt
         if disable_filetypes[vim.bo[bufnr].filetype] then
           lsp_format_opt = 'never'
@@ -706,8 +835,12 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
+        -- python = { 'black' },
+        -- cpp = { 'cpplint' },
+        cpp = { 'clang_format' },
+        c = { 'clang_format' },
         -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
+        python = { 'isort', 'black' },
         --
         -- You can use 'stop_after_first' to run the first available formatter from the list
         -- javascript = { "prettierd", "prettier", stop_after_first = true },
@@ -788,7 +921,7 @@ require('lazy').setup({
           -- you can uncomment the following lines
           --['<CR>'] = cmp.mapping.confirm { select = true },
           --['<Tab>'] = cmp.mapping.select_next_item(),
-          --['<S-Tab>'] = cmp.mapping.select_prev_item(),
+          -- ['<S-Tab>'] = cmp.mapping.select_prev_item(),
 
           -- Manually trigger a completion from nvim-cmp.
           --  Generally you don't need this, because nvim-cmp will display
@@ -896,7 +1029,7 @@ require('lazy').setup({
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
+      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'python' },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
