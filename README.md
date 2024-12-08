@@ -1,6 +1,4 @@
-Certainly! Below is a comprehensive **Keymap Summary** extracted from your Neovim configuration. This summary focuses on the most useful keybindings related to **navigating** and **editing** code, ensuring an efficient and streamlined coding experience.
 
----
 
 ## 📌 Leader Key
 
