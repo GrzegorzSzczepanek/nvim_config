@@ -272,6 +272,13 @@ require('lazy').setup({
   --
   -- Use `opts = {}` to force a plugin to be loaded.
   --
+  {
+    'rafamadriz/friendly-snippets',
+    config = function()
+      require('luasnip.loaders.from_vscode').lazy_load()
+    end,
+    event = 'VeryLazy',
+  },
 
   -- Here is a more advanced example where we pass configuration
   -- options to `gitsigns.nvim`. This is equivalent to the following Lua:
@@ -290,6 +297,7 @@ require('lazy').setup({
       },
     },
   },
+
   {
     'echasnovski/mini.tabline',
     version = false, -- Latest version
@@ -566,7 +574,15 @@ require('lazy').setup({
         'WhoIsSethDaniel/mason-tool-installer.nvim',
         config = function()
           require('mason-tool-installer').setup {
-            ensure_installed = { 'black' }, -- Ensure 'black' is installed for Python formatting
+            ensure_installed = {
+              'black',
+              'tsserver',
+              'typescript-language-server',
+              'tailwindcss-language-server',
+              'eslint-lsp',
+              'prettier',
+              'cssls',
+            }, -- Ensure 'black' is installed for Python formatting
           }
         end,
       }, -- Useful status updates for LSP.
@@ -714,6 +730,26 @@ require('lazy').setup({
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
+        ts_ls = {
+          filetypes = { 'typescript', 'typescriptreact', 'typescript.tsx', 'javascript', 'javascriptreact', 'jsx', 'tsx' },
+          -- If you want to customize tsserver settings:
+          -- settings = {
+          --   typescript = {
+          --     format = {
+          --       convertTabsToSpaces = true,
+          --       tabSize = 2,
+          --     },
+          --   },
+          --   javascript = {
+          --     format = {
+          --       convertTabsToSpaces = true,
+          --       tabSize = 2,
+          --     },
+          --   },
+          -- },
+        },
+        tailwindcss = {},
+        eslint = {},
         clangd = {},
         gopls = {},
         html = {
@@ -783,6 +819,7 @@ require('lazy').setup({
         'clang-format',
         'html',
         'cssls',
+        'typescript-language-server',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -834,6 +871,14 @@ require('lazy').setup({
         }
       end,
       formatters_by_ft = {
+        javascript = { 'prettier' },
+        javascriptreact = { 'prettier' },
+        typescript = { 'prettier' },
+        typescriptreact = { 'prettier' },
+        json = { 'prettier' },
+        css = { 'prettier' },
+        scss = { 'prettier' },
+        html = { 'prettier' },
         lua = { 'stylua' },
         -- python = { 'black' },
         -- cpp = { 'cpplint' },
@@ -1029,7 +1074,24 @@ require('lazy').setup({
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'python' },
+      ensure_installed = {
+        'bash',
+        'c',
+        'diff',
+        'html',
+        'lua',
+        'luadoc',
+        'markdown',
+        'markdown_inline',
+        'query',
+        'vim',
+        'vimdoc',
+        'python',
+        'javascript',
+        'typescript',
+        'tsx',
+        'json',
+      },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
