@@ -182,19 +182,19 @@ require('lazy').setup({
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
 
   -- testing
-  -- {
-  --   dir = '~/documents/projects/gamify.nvim',
-  --   config = function()
-  --     require 'gamify'
-  --   end,
-  -- },
-
   {
-    'grzegorzszczepanek/gamify.nvim',
+    dir = '~/documents/projects/gamify.nvim',
     config = function()
       require 'gamify'
     end,
   },
+
+  -- {
+  --   'grzegorzszczepanek/gamify.nvim',
+  --   config = function()
+  --     require 'gamify'
+  --   end,
+  -- },
   {
     'rafamadriz/friendly-snippets',
     config = function()
@@ -251,6 +251,7 @@ require('lazy').setup({
       require('termplug').setup { size = 0.9 } -- Set the size to 0.5 or customize as needed
 
       -- Optionally, keymap for Control + g to toggle lazygit
+      vim.keymap.set('n', '<C-t>', ':terminal<CR>', { desc = 'Toggle Terminal' })
       vim.keymap.set({ 'n', 't' }, '<C-g>', '<cmd>Term lazygit<CR>', { desc = 'Toggle LazyGit' })
     end,
   },
@@ -509,6 +510,7 @@ require('lazy').setup({
               'eslint-lsp',
               'prettier',
               'cssls',
+              'asm_lsp',
             }, -- Ensure 'black' is installed for Python formatting
           }
         end,
@@ -676,10 +678,44 @@ require('lazy').setup({
           -- },
         },
         tailwindcss = {},
+        asm_lsp = {
+          -- This cmd points to your locally installed asm-lsp binary (ensure it’s on your PATH).
+          cmd = { 'asm-lsp' },
+
+          -- Adjust to match the file types you use for assembly:
+          filetypes = { 'asm', 's' },
+
+          -- Optional: If your LSP has special config or root directory logic:
+          root_dir = function(fname)
+            local lspconfig = require 'lspconfig'
+            return lspconfig.util.root_pattern '.git'(fname) or lspconfig.util.root_pattern('*.asm', '*.s')(fname) or vim.fn.getcwd()
+          end,
+
+          -- Optional: Only if the LSP needs specific settings or capabilities
+          settings = {
+            -- e.g., your-lsp-specific-keys
+          },
+          single_file_support = true,
+        },
         eslint = {},
         clangd = {},
         gopls = {},
         html = {
+          opts = {
+            settings = {
+              html = {
+                format = {
+                  templating = true,
+                  wrapLineLength = 120,
+                  wrapAttributes = 'auto',
+                },
+                hover = {
+                  documentation = true,
+                  references = true,
+                },
+              },
+            },
+          },
           filetypes = { 'html', 'htmldjango' }, -- You can define supported file types here
         },
         cssls = {
@@ -744,6 +780,7 @@ require('lazy').setup({
         'black', -- Used to format Python code
         'cpplint',
         'clang-format',
+        'asmfmt',
         'html',
         'cssls',
         'typescript-language-server',
@@ -807,6 +844,8 @@ require('lazy').setup({
         scss = { 'prettier' },
         html = { 'prettier' },
         lua = { 'stylua' },
+        asm = { 'asmfmt' },
+        s = { 'asmfmt' },
         -- python = { 'black' },
         -- cpp = { 'cpplint' },
         cpp = { 'clang_format' },
