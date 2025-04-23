@@ -180,14 +180,33 @@ vim.opt.rtp:prepend(lazypath)
 
 require('lazy').setup({
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
-
-  -- testing
   {
-    dir = '~/documents/projects/gamify.nvim',
+    'ThePrimeagen/htmx-lsp',
+    ft = { 'html', 'jinja.html', 'htmldjango' },
     config = function()
-      require 'gamify'
+      require('lspconfig').htmx.setup {
+        cmd = { 'htmx-lsp' }, -- Ensure this matches your installed binary name
+        filetypes = { 'html', 'jinja.html', 'htmldjango' },
+      }
     end,
   },
+  {
+    'Glench/vim-jinja2-syntax',
+    ft = 'jinja.html',
+  },
+  {
+    'turbio/bracey.vim',
+    build = 'npm install --prefix server',
+    ft = 'html',
+  },
+
+  -- testing
+  -- {
+  --   dir = '~/documents/projects/gamify.nvim',
+  --   config = function()
+  --     require 'gamify'
+  --   end,
+  -- },
 
   -- {
   --   'grzegorzszczepanek/gamify.nvim',
@@ -494,7 +513,13 @@ require('lazy').setup({
         'williamboman/mason-lspconfig.nvim',
         config = function()
           require('mason-lspconfig').setup {
-            ensure_installed = { 'pyright' }, -- Install the Python LSP
+            ensure_installed = {
+              'pyright',
+              'htmx', -- Add HTMX-LSP to Mason's install list
+              'tailwindcss',
+              'html',
+              'cssls',
+            },
           }
         end,
       },
@@ -649,6 +674,15 @@ require('lazy').setup({
       local capabilities = vim.lsp.protocol.make_client_capabilities()
       capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
 
+      vim.filetype.add {
+        extension = {
+          html = 'jinja.html', -- Treat all .html files as Jinja2
+        },
+        pattern = {
+          ['.*/templates/.*%.html'] = 'jinja.html', -- Files in templates directories
+        },
+      }
+
       -- Enable the following language servers
       --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
       --
@@ -677,7 +711,6 @@ require('lazy').setup({
           --   },
           -- },
         },
-        tailwindcss = {},
         asm_lsp = {
           -- This cmd points to your locally installed asm-lsp binary (ensure it’s on your PATH).
           cmd = { 'asm-lsp' },
@@ -709,6 +742,9 @@ require('lazy').setup({
                   wrapLineLength = 120,
                   wrapAttributes = 'auto',
                 },
+                suggest = {
+                  html5 = true,
+                },
                 hover = {
                   documentation = true,
                   references = true,
@@ -716,7 +752,23 @@ require('lazy').setup({
               },
             },
           },
-          filetypes = { 'html', 'htmldjango' }, -- You can define supported file types here
+          filetypes = { 'html', 'htmldjango', 'jinja.html' }, -- You can define supported file types here
+        },
+        tailwindcss = {
+          filetypes = {
+            'html',
+            'css',
+            'javascript',
+            'javascriptreact',
+            'typescript',
+            'typescriptreact',
+            'jinja.html',
+          },
+          init_options = {
+            userLanguages = {
+              ['jinja.html'] = 'html', -- Fixed key syntax using square brackets
+            },
+          },
         },
         cssls = {
           settings = {
@@ -1052,6 +1104,8 @@ require('lazy').setup({
         'query',
         'vim',
         'vimdoc',
+        -- 'jinja2',
+        'jinja',
         'python',
         'javascript',
         'typescript',
@@ -1069,6 +1123,7 @@ require('lazy').setup({
       },
       indent = { enable = true, disable = { 'ruby' } },
     },
+
     -- There are additional nvim-treesitter modules that you can use to interact
     -- with nvim-treesitter. You should go explore a few and see what interests you:
     --
