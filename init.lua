@@ -104,7 +104,8 @@ vim.opt.scrolloff = 20
 vim.opt.termguicolors = true
 
 -- Set the colorscheme
-vim.cmd 'colorscheme sorbet'
+-- vim.cmd 'colorscheme sorbet'
+vim.cmd 'colorscheme cyberdyne'
 
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
@@ -114,7 +115,7 @@ vim.cmd 'colorscheme sorbet'
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
 -- Diagnostic keymaps
-vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+vim.keymap.set('n', '<leader>lq', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -184,20 +185,12 @@ require('lazy').setup({
     'ThePrimeagen/htmx-lsp',
     ft = { 'html', 'jinja.html', 'htmldjango' },
     config = function()
+      -- Configure through LSP instead of regular plugin setup
       require('lspconfig').htmx.setup {
-        cmd = { 'htmx-lsp' }, -- Ensure this matches your installed binary name
         filetypes = { 'html', 'jinja.html', 'htmldjango' },
+        -- Add any specific settings here
       }
     end,
-  },
-  {
-    'Glench/vim-jinja2-syntax',
-    ft = 'jinja.html',
-  },
-  {
-    'turbio/bracey.vim',
-    build = 'npm install --prefix server',
-    ft = 'html',
   },
 
   -- testing
@@ -208,12 +201,12 @@ require('lazy').setup({
   --   end,
   -- },
 
-  -- {
-  --   'grzegorzszczepanek/gamify.nvim',
-  --   config = function()
-  --     require 'gamify'
-  --   end,
-  -- },
+  {
+    'grzegorzszczepanek/gamify.nvim',
+    config = function()
+      require 'gamify'
+    end,
+  },
   {
     'rafamadriz/friendly-snippets',
     config = function()
@@ -258,12 +251,13 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>wq', ':q<CR>', { desc = 'Close window' })
     end,
   }, -- Cool plugin for in-editor terminal window
-  {
-    'folke/drop.nvim',
-    opts = {
-      screensaver = 1000 * 60 * 4,
-    },
-  },
+  -- {
+  --   'folke/drop.nvim',
+  --   opts = {
+  --     screensaver = 1000 * 60 * 4,
+  --   },
+  -- },
+  { 'roobert/tailwindcss-colorizer-cmp.nvim', opts = {} },
   {
     'Ernest1338/termplug.nvim',
     config = function()
@@ -448,6 +442,16 @@ require('lazy').setup({
       pcall(require('telescope').load_extension, 'fzf')
       pcall(require('telescope').load_extension, 'ui-select')
 
+      vim.keymap.set('n', '<leader>jb', 'i{% block %}<Esc>F%i ', { desc = 'Insert [J]inja [B]lock' })
+      vim.keymap.set('n', '<leader>je', 'i{% extends "" %}<Esc>F"a', { desc = 'Insert [J]inja [E]xtends' })
+      vim.keymap.set('n', '<leader>ji', 'i{% include "" %}<Esc>F"a', { desc = 'Insert [J]inja [I]nclude' })
+      vim.keymap.set('n', '<leader>jm', 'i{% macro  %}<Esc>F%i ', { desc = 'Insert [J]inja [M]acro' })
+      vim.keymap.set('n', '<leader>jf', 'i{% for  in %}<Esc>F i', { desc = 'Insert [J]inja [F]or loop' })
+      vim.keymap.set('n', '<leader>jif', 'i{% if %}<Esc>F%a ', { desc = 'Insert [J]inja [IF] statement' })
+      vim.keymap.set('n', '<leader>jv', 'i{{  }}<Esc>F a', { desc = 'Insert [J]inja [V]ariable' })
+      vim.keymap.set('n', '<leader>jc', 'i{#  #}<Esc>F a', { desc = 'Insert [J]inja [C]omment' })
+      vim.keymap.set('n', '<leader>jfm', 'i{% from "" import  %}<Esc>F"a', { desc = '[J]inja [F]ro[M] import' })
+
       -- See `:help telescope.builtin`
       local builtin = require 'telescope.builtin'
       vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
@@ -513,13 +517,7 @@ require('lazy').setup({
         'williamboman/mason-lspconfig.nvim',
         config = function()
           require('mason-lspconfig').setup {
-            ensure_installed = {
-              'pyright',
-              'htmx', -- Add HTMX-LSP to Mason's install list
-              'tailwindcss',
-              'html',
-              'cssls',
-            },
+            ensure_installed = { 'pyright' }, -- Install the Python LSP
           }
         end,
       },
@@ -674,15 +672,6 @@ require('lazy').setup({
       local capabilities = vim.lsp.protocol.make_client_capabilities()
       capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
 
-      vim.filetype.add {
-        extension = {
-          html = 'jinja.html', -- Treat all .html files as Jinja2
-        },
-        pattern = {
-          ['.*/templates/.*%.html'] = 'jinja.html', -- Files in templates directories
-        },
-      }
-
       -- Enable the following language servers
       --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
       --
@@ -710,6 +699,20 @@ require('lazy').setup({
           --     },
           --   },
           -- },
+          --
+          svelte = {
+            filetypes = { 'svelte', 'page' },
+            settings = {
+              svelte = { plugin = { svelte = { format = { enable = true } } } },
+            },
+          },
+          tailwindcss = {
+            experimental = {
+              classRegex = {
+                'class[:]\\s*"([^"]*)"',
+              },
+            },
+          },
         },
         asm_lsp = {
           -- This cmd points to your locally installed asm-lsp binary (ensure it’s on your PATH).
@@ -742,9 +745,6 @@ require('lazy').setup({
                   wrapLineLength = 120,
                   wrapAttributes = 'auto',
                 },
-                suggest = {
-                  html5 = true,
-                },
                 hover = {
                   documentation = true,
                   references = true,
@@ -752,23 +752,7 @@ require('lazy').setup({
               },
             },
           },
-          filetypes = { 'html', 'htmldjango', 'jinja.html' }, -- You can define supported file types here
-        },
-        tailwindcss = {
-          filetypes = {
-            'html',
-            'css',
-            'javascript',
-            'javascriptreact',
-            'typescript',
-            'typescriptreact',
-            'jinja.html',
-          },
-          init_options = {
-            userLanguages = {
-              ['jinja.html'] = 'html', -- Fixed key syntax using square brackets
-            },
-          },
+          filetypes = { 'html', 'htmldjango' }, -- You can define supported file types here
         },
         cssls = {
           settings = {
@@ -869,7 +853,7 @@ require('lazy').setup({
       },
     },
     opts = {
-      notify_on_error = false,
+      notify_on_error = true,
       format_on_save = function(bufnr)
         -- Disable "format_on_save lsp_fallback" for languages that don't
         -- have a well standardized coding style. You can add additional
@@ -888,6 +872,7 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         javascript = { 'prettier' },
+        svelte = { 'prettier' },
         javascriptreact = { 'prettier' },
         typescript = { 'prettier' },
         typescriptreact = { 'prettier' },
@@ -939,6 +924,7 @@ require('lazy').setup({
           -- },
         },
       },
+      { 'roobert/tailwindcss-colorizer-cmp.nvim', opts = {} },
       'saadparwaiz1/cmp_luasnip',
 
       -- Adds other completion capabilities.
@@ -1028,24 +1014,25 @@ require('lazy').setup({
     end,
   },
 
-  { -- You can easily change to a different colorscheme.
-    -- Change the name of the colorscheme plugin below, and then
-    -- change the command in the config to whatever the name of that colorscheme is.
-    --
-    -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-    'folke/tokyonight.nvim',
-    priority = 1000, -- Make sure to load this before all the other start plugins.
-    init = function()
-      -- Load the colorscheme here.
-      -- Like many other themes, this one has different styles, and you could load
-      -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'tokyonight-night'
-
-      -- You can configure highlights by doing something like:
-      vim.cmd.hi 'Comment gui=none'
-    end,
-  },
-
+  -- { -- You can easily change to a different colorscheme.
+  --   -- Change the name of the colorscheme plugin below, and then
+  --   -- change the command in the config to whatever the name of that colorscheme is.
+  --   --
+  --   -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
+  --   'folke/tokyonight.nvim',
+  --   priority = 1000, -- Make sure to load this before all the other start plugins.
+  --   init = function()
+  --     -- Load the colorscheme here.
+  --     -- Like many other themes, this one has different styles, and you could load
+  --     -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
+  --     vim.cmd.colorscheme 'tokyonight-night'
+  --
+  --
+  --     -- You can configure highlights by doing something like:
+  --     vim.cmd.hi 'Comment gui=none'
+  --   end,
+  -- },
+  --
   -- Highlight todo, notes, etc in comments
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
 
@@ -1095,6 +1082,7 @@ require('lazy').setup({
       ensure_installed = {
         'bash',
         'c',
+        'svelte',
         'diff',
         'html',
         'lua',
@@ -1104,8 +1092,6 @@ require('lazy').setup({
         'query',
         'vim',
         'vimdoc',
-        -- 'jinja2',
-        'jinja',
         'python',
         'javascript',
         'typescript',
@@ -1123,7 +1109,6 @@ require('lazy').setup({
       },
       indent = { enable = true, disable = { 'ruby' } },
     },
-
     -- There are additional nvim-treesitter modules that you can use to interact
     -- with nvim-treesitter. You should go explore a few and see what interests you:
     --
