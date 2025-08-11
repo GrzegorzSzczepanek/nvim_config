@@ -105,7 +105,6 @@ vim.opt.termguicolors = true
 
 -- Set the colorscheme
 -- vim.cmd 'colorscheme sorbet'
-vim.cmd 'colorscheme cyberdyne'
 
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
@@ -116,6 +115,8 @@ vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>lq', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+
+vim.keymap.set('n', '<leader>dr', vim.diagnostic.open_float, { desc = '[D]escribe [E]rror (Diagnostic)' })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -1011,6 +1012,15 @@ require('lazy').setup({
           { name = 'black' },
         },
       }
+    end,
+  },
+  {
+    'GrzegorzSzczepanek/cyberdyne.nvim',
+    lazy = false, -- Or true, if you prefer to load it later
+    priority = 1000, -- Ensures it loads before other plugins that might set colors
+    config = function()
+      -- Optionally, set the colorscheme here to apply it on startup
+      vim.cmd.colorscheme 'cyberdyne'
     end,
   },
 
